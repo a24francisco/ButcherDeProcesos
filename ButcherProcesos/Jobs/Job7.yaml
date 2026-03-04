@@ -1,0 +1,8 @@
+id: job-invalid-2
+name: "Trabajo corrupto"
+priority: 2
+resources:
+  cpu_cores: 0
+  memory: "256 TB"
+workload:
+  duration_ms: 5000
