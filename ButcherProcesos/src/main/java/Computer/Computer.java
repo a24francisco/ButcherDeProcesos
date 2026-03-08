@@ -58,7 +58,7 @@ public class Computer {
     
     public void reserveResources(int SCores,int SMemory){
         if (!acceptJobs(SCores, SMemory)) {
-            System.out.println("ERROR");
+            System.out.println("No hay recursos suficientes");
         }else{
         usedCPU += SCores;
         usedMemory += SMemory;}

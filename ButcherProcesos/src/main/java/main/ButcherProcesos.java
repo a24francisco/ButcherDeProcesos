@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-package alende.butcherprocesos;
+package main;
 
 import Job.Job;
 import java.io.FileInputStream;

@@ -118,6 +118,15 @@ public class Job {
         this.pid = pid;
     }
 
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+    
+
     @Override
     public String toString() {
         return "Job{" + "id=" + id + ", name=" + name + ", priority=" + priority + ", resources=" + resources + ", workload=" + workload + ", startTime=" + startTime + ", durationTime=" + durationTime + ", pid=" + pid + '}';
