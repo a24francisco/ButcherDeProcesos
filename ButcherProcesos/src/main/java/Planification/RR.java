@@ -4,6 +4,7 @@
  */
 package Planification;
 
+import Interfaces.Planification;
 import Job.Job;
 import Manager.JobManager;
 
@@ -11,7 +12,7 @@ import Manager.JobManager;
  *
  * @author frana
  */
-public class RR {
+public class RR implements Planification{
 
     private JobManager jm;
     private int quantum;
@@ -20,6 +21,10 @@ public class RR {
         this.jm = jm;
         this.quantum = quantum;
     }
+      @Override
+    public void algorithm(){
+        jm.moveReadyToRunning();
+        }
 
     public void finishQuantum() {
 

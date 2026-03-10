@@ -4,6 +4,7 @@
  */
 package Planification;
 
+import Interfaces.Planification;
 import Job.Job;
 import Manager.JobManager;
 
@@ -11,12 +12,13 @@ import Manager.JobManager;
  *
  * @author frana
  */
-public class FCFS {
+public class FCFS implements Planification{
     private JobManager jm;
 
     public FCFS(JobManager jm) {
         this.jm = jm;
     }
+      @Override
     public void algorithm(){
         jm.moveReadyToRunning();
         }
