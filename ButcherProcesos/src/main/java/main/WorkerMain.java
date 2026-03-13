@@ -35,7 +35,7 @@ public class WorkerMain {
                     bw.write("{jobId: " + id + ", progress: " + progress + "}");
                     bw.newLine();
                     bw.flush();
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                     
                 } catch (IOException ex) {
                     Logger.getLogger(WorkerMain.class.getName()).log(Level.SEVERE, null, ex);
