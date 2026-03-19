@@ -38,37 +38,22 @@ public class ButcherProcesos {
 
         load(jm);
         admitJobs(jm);
-         List<Job> ready=new ArrayList<>(jm.getREADY());
-        int option= selectOption();
-        if(option==1){
-           List<Process> total= new ArrayList<>();
-            FCFS FCFS=new FCFS(jm);
-            for(Job j:ready){
-                FCFS.algorithm();
-                total.add(launchJob(jm, j));
-            }
-            for(Process p:total){
-               try {
-                   p.waitFor();
-               } catch (InterruptedException ex) {
-                   Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
-               }
-            }
-        }
-        else{
-            List<Process> total= new ArrayList<>();
-            RR RR= new RR(jm,20);
-                for(Job j:ready){
+        List<Job> ready = new ArrayList<>(jm.getREADY());
+        int option = selectOption();
+        if (option == 1) {
+            FCFS FCFS = new FCFS(jm);
+            FCFS.algorithm();
+            launchJobFCFS(jm, ready.get(0));
+
+        } else {
+
+            RR RR = new RR(jm, 20);
+            for (Job j : ready) {
                 RR.algorithm();
-                total.add(launchJob(jm, j));
+                Thread t = new Thread(() -> launchJobRR(jm, j));
+                t.start();
             }
-            for(Process p:total){
-               try {
-                   p.waitFor();
-               } catch (InterruptedException ex) {
-                   Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
-               }
-            }
+
         }
 
     }
@@ -94,55 +79,105 @@ public class ButcherProcesos {
     }
 
     public static void admitJobs(JobManager jm) {
-        while(!jm.getNEW().isEmpty()){
-        jm.moveNewToReadyWaiting();}
+        while (!jm.getNEW().isEmpty()) {
+            jm.moveNewToReadyWaiting();
+        }
     }
-    public static int selectOption(){
-    Scanner sc= new Scanner(System.in);
-    
+
+    public static int selectOption() {
+        Scanner sc = new Scanner(System.in);
+
         System.out.println("Elige planificación:(por defecto sera FCFS)");
         System.out.println("1-FCFS");
         System.out.println("2-RR");
-        int option=sc.nextInt();
-        if (option!=1 && option!=2) {
+        int option = sc.nextInt();
+        if (option != 1 && option != 2) {
             System.out.println("Error en la seleccion de la opcion");
-             return 1;
+            return 1;
         }
         return option;
     }
-    public static Process launchJob(JobManager jm, Job j){
+
+    public static Process launchJobRR(JobManager jm, Job j) {
         try {
-            String cp=System.getProperty("java.class.path");
+            String cp = System.getProperty("java.class.path");
             ProcessBuilder pb = new ProcessBuilder(
-                    "java", "-cp", cp, "main.WorkerMain",j.getId(),String.valueOf(j.getWorkload().getDuration_ms()),String.valueOf(j.getCpu()),String.valueOf(j.getMemory())
+                    "java", "-cp", cp, "main.WorkerMain", j.getId(), String.valueOf(j.getWorkload().getDuration_ms()), String.valueOf(j.getCpu()), String.valueOf(j.getMemory())
             );
-            Process p=pb.start();
-            BufferedReader br= new BufferedReader(new InputStreamReader(p.getInputStream()));
+            Process p = pb.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while((line=br.readLine())!=null){
+            while ((line = br.readLine()) != null) {
                 System.out.println(line);
             }
-            int exitCode=p.waitFor();
-            if (exitCode==0) {
+            int exitCode = p.waitFor();
+            if (exitCode == 0) {
                 j.setState(State.DONE);
-            }
-            else{
+            } else {
                 j.setState(State.FAILED);
             }
             jm.getRUNNING().remove(j);
             jm.getC().freeResources(j.getCpu(), j.getMemory());
             jm.moveWaitingToReady();
+            List<Job> news = new ArrayList<>(jm.getREADY());
+            for (Job aNew : news) {
+                if (aNew.getState() == State.READY) {
+                    jm.moveReadyToRunning();
+                    Thread t = new Thread(() -> launchJobRR(jm, aNew));
+                    t.start();
+                }
+            }
             return p;
-            
+
         } catch (IOException ex) {
-            
+
             Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         } catch (InterruptedException ex) {
             Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-    
+
     }
-    
+
+    public static void launchJobFCFS(JobManager jm, Job j) {
+        try {
+            String cp = System.getProperty("java.class.path");
+            ProcessBuilder pb = new ProcessBuilder(
+                    "java", "-cp", cp, "main.WorkerMain", j.getId(), String.valueOf(j.getWorkload().getDuration_ms()), String.valueOf(j.getCpu()), String.valueOf(j.getMemory())
+            );
+            Process p = pb.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+            int exitCode = p.waitFor();
+            if (exitCode == 0) {
+                j.setState(State.DONE);
+            } else {
+                j.setState(State.FAILED);
+            }
+            jm.getRUNNING().remove(j);
+            jm.getC().freeResources(j.getCpu(), j.getMemory());
+            jm.moveWaitingToReady();
+            List<Job> news = new ArrayList<>(jm.getREADY());
+            for (Job aNew : news) {
+                if (aNew.getState() == State.READY) {
+                    jm.moveReadyToRunning();
+                    launchJobFCFS(jm, news.get(0));
+                }
+
+            }
+
+        } catch (IOException ex) {
+
+            Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
+
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
 }

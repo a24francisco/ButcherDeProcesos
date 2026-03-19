@@ -23,7 +23,7 @@ public class RR implements Planification{
     }
       @Override
     public void algorithm(){
-        jm.moveReadyToRunning();
+       finishQuantum();
         }
 
     public void finishQuantum() {
