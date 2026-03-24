@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -43,16 +44,39 @@ public class ButcherProcesos {
         if (option == 1) {
             FCFS FCFS = new FCFS(jm);
             FCFS.algorithm();
+            Thread show = new Thread(() -> {
+                while (!jm.getRUNNING().isEmpty()) {
+                    print(jm, "FCFS");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+            show.start();
             launchJobFCFS(jm, ready.get(0));
 
         } else {
 
             RR RR = new RR(jm, 20);
+
             for (Job j : ready) {
                 RR.algorithm();
                 Thread t = new Thread(() -> launchJobRR(jm, j));
                 t.start();
             }
+            Thread show = new Thread(() -> {
+                while (!jm.getRUNNING().isEmpty()) {
+                    print(jm, "RR");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+            show.start();
 
         }
 
@@ -86,16 +110,22 @@ public class ButcherProcesos {
 
     public static int selectOption() {
         Scanner sc = new Scanner(System.in);
+        try {
+            System.out.println("Elige planificación:(por defecto sera FCFS)");
+            System.out.println("1-FCFS");
+            System.out.println("2-RR");
+            int option = sc.nextInt();
+            if (option != 1 && option != 2) {
+                System.out.println("Error en la seleccion de la opcion");
+                return 1;
+            }
 
-        System.out.println("Elige planificación:(por defecto sera FCFS)");
-        System.out.println("1-FCFS");
-        System.out.println("2-RR");
-        int option = sc.nextInt();
-        if (option != 1 && option != 2) {
+            return option;
+        }catch(InputMismatchException ex){
             System.out.println("Error en la seleccion de la opcion");
-            return 1;
         }
-        return option;
+        return 1;
+
     }
 
     public static Process launchJobRR(JobManager jm, Job j) {
@@ -108,13 +138,13 @@ public class ButcherProcesos {
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+
             }
             int exitCode = p.waitFor();
             if (exitCode == 0) {
-                j.setState(State.DONE);
+                jm.moveRunningToDone(j);
             } else {
-                j.setState(State.FAILED);
+                jm.moveRunningToFailed(j);
             }
             jm.getRUNNING().remove(j);
             jm.getC().freeResources(j.getCpu(), j.getMemory());
@@ -150,13 +180,15 @@ public class ButcherProcesos {
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                String[] parts = line.split("progress: ");
+                double progress = Double.parseDouble(parts[1]);
+                j.setProgress(progress);
             }
             int exitCode = p.waitFor();
             if (exitCode == 0) {
-                j.setState(State.DONE);
+                jm.moveRunningToDone(j);
             } else {
-                j.setState(State.FAILED);
+                jm.moveRunningToFailed(j);
             }
             jm.getRUNNING().remove(j);
             jm.getC().freeResources(j.getCpu(), j.getMemory());
@@ -180,4 +212,43 @@ public class ButcherProcesos {
         }
 
     }
+
+    public static void print(JobManager jm, String algorithm) {
+        System.out.println("Hola");
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        System.out.println("----------------------------------------------");
+        System.out.println("--BATCHER MONITOR · Política: " + algorithm + " --");
+        System.out.println("----------------------------------------------");
+        System.out.println("CPU " + jm.getC().getUsedCPU() + "/" + jm.getC().getCpuCores());
+        System.out.println("RAM " + jm.getC().getUsedMemory() + "/" + jm.getC().getMemoryMB());
+        System.out.println("----------------------------------------------");
+        System.out.println("READY: " + jm.getREADY().size());
+        for (Job j : jm.getREADY()) {
+            System.out.print(j.getId() + "(p" + j.getPriority() + "," + j.getCpu() + ",CPU: " + j.getMemory() + " MB),");
+        }
+        System.out.println("");
+        System.out.println("WAITING: " + jm.getWAITING().size());
+        for (Job j : jm.getWAITING()) {
+            System.out.print(j.getId() + "(p" + j.getPriority() + "," + j.getCpu() + ",CPU: " + j.getMemory() + " MB),");
+        }
+        System.out.println("");
+        System.out.println("DONE: " + jm.getDone().size());
+        for (Job j : jm.getDone()) {
+            System.out.print(j.getId() + "(p" + j.getPriority() + "," + j.getCpu() + ",CPU: " + j.getMemory() + " MB),");
+        }
+        System.out.println("");
+        System.out.println("FAILED: " + jm.getFailed().size());
+        for (Job j : jm.getFailed()) {
+            System.out.print(j.getId() + "(p" + j.getPriority() + "," + j.getCpu() + ",CPU: " + j.getMemory() + " MB),");
+        }
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("RUNNING: " + jm.getRUNNING().size());
+        System.out.println("ID|PID|PRIO|CORES|MEM|PROGRESO|ESTADO");
+        for (Job j : jm.getRUNNING()) {
+            System.out.println(j.getId() + "|" + j.getPid() + "|" + j.getPriority() + "|" + j.getCpu() + "|" + j.getMemory() + "MB" + "|" + String.format("%.2f", j.getProgress() * 100) + "|" + j.getState());
+        }
+
+    }
+
 }

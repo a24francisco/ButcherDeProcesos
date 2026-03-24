@@ -21,6 +21,8 @@ public class JobManager {
     private List<Job> waiting;
     private List<Job> running;
     private List<Job> New;
+    private List<Job> done;
+    private List<Job> failed;
     private Computer C;
 
     public JobManager(Computer C) {
@@ -28,6 +30,8 @@ public class JobManager {
         this.waiting = new ArrayList<>();
         this.running = new ArrayList<>();
         this.New = new ArrayList<>();
+        this.done= new ArrayList<>();
+        this.failed=new ArrayList<>();
         this.C = C;
     }
 
@@ -85,7 +89,20 @@ public class JobManager {
             moveWaitingToReady();
         }
     }
+    public void moveRunningToFailed(Job j ){
+        running.remove(j);
+        failed.add(j);
+        j.setState(State.FAILED);
+        moveWaitingToReady();
+    }
+    public void moveRunningToDone(Job j ){
+        running.remove(j);
+        done.add(j);
+        j.setState(State.DONE);
+        moveWaitingToReady();
+    }
 
+    
     public List<Job> getREADY() {
         return ready;
     }
@@ -125,5 +142,22 @@ public class JobManager {
     public void setC(Computer C) {
         this.C = C;
     }
+
+    public List<Job> getDone() {
+        return done;
+    }
+
+    public void setDone(List<Job> done) {
+        this.done = done;
+    }
+
+    public List<Job> getFailed() {
+        return failed;
+    }
+
+    public void setFailed(List<Job> failed) {
+        this.failed = failed;
+    }
+    
 
 }

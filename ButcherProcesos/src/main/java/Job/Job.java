@@ -18,6 +18,7 @@ public class Job {
     private long durationTime;
     private long pid;
     private State state=State.NEW;
+    private double progress;
 
     public Job() {
     }
@@ -33,6 +34,7 @@ public class Job {
         this.startTime = startTime;
         this.durationTime = durationTime;
         this.pid = pid;
+        this.progress=0.0;
     }
     
     public int getCpu(){
@@ -125,12 +127,21 @@ public class Job {
     public void setState(State state) {
         this.state = state;
     }
-    
+
+    public double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(double progress) {
+        this.progress = progress;
+    }
 
     @Override
     public String toString() {
-        return "Job{" + "id=" + id + ", name=" + name + ", priority=" + priority + ", resources=" + resources + ", workload=" + workload + ", startTime=" + startTime + ", durationTime=" + durationTime + ", pid=" + pid + '}';
+        return "Job{" + "id=" + id + ", name=" + name + ", priority=" + priority + ", resources=" + resources + ", workload=" + workload + ", startTime=" + startTime + ", durationTime=" + durationTime + ", pid=" + pid + ", state=" + state + ", progress=" + progress + '}';
     }
+    
+    
     public boolean isValid(){
         if (id==null||id.isEmpty()) {
             return false;

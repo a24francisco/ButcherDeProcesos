@@ -32,7 +32,8 @@ public class WorkerMain {
                 try {
                     elapsed = System.currentTimeMillis() - start;
                     double progress = Double.valueOf(elapsed)/ Double.valueOf(duration);
-                    bw.write("{jobId: " + id + ", progress: " + progress + "}");
+                    progress = Math.min(progress, 1.0);
+                    bw.write( "progress: " + progress);
                     bw.newLine();
                     bw.flush();
                     Thread.sleep(1000);
