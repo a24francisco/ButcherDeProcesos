@@ -60,24 +60,12 @@ public class ButcherProcesos {
         } else {
 
             RR RR = new RR(jm, 20);
-
             for (Job j : ready) {
                 RR.algorithm();
                 Thread t = new Thread(() -> launchJobRR(jm, j));
                 t.start();
             }
-            Thread show = new Thread(() -> {
-                while (!jm.getRUNNING().isEmpty()) {
-                    print(jm, "RR");
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(ButcherProcesos.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            });
-            show.start();
-
+           
         }
 
     }
@@ -121,7 +109,7 @@ public class ButcherProcesos {
             }
 
             return option;
-        }catch(InputMismatchException ex){
+        } catch (InputMismatchException ex) {
             System.out.println("Error en la seleccion de la opcion");
         }
         return 1;
@@ -138,7 +126,7 @@ public class ButcherProcesos {
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
             while ((line = br.readLine()) != null) {
-
+                System.out.println(line);
             }
             int exitCode = p.waitFor();
             if (exitCode == 0) {
@@ -146,7 +134,7 @@ public class ButcherProcesos {
             } else {
                 jm.moveRunningToFailed(j);
             }
-            jm.getRUNNING().remove(j);
+
             jm.getC().freeResources(j.getCpu(), j.getMemory());
             jm.moveWaitingToReady();
             List<Job> news = new ArrayList<>(jm.getREADY());
@@ -214,8 +202,7 @@ public class ButcherProcesos {
     }
 
     public static void print(JobManager jm, String algorithm) {
-        System.out.println("Hola");
-        System.out.print("\033[H\033[2J");
+
         System.out.flush();
         System.out.println("----------------------------------------------");
         System.out.println("--BATCHER MONITOR · Política: " + algorithm + " --");

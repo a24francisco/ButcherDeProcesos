@@ -33,7 +33,7 @@ public class WorkerMain {
                     elapsed = System.currentTimeMillis() - start;
                     double progress = Double.valueOf(elapsed)/ Double.valueOf(duration);
                     progress = Math.min(progress, 1.0);
-                    bw.write( "progress: " + progress);
+                    bw.write("jobId: "+id+ " progress: " +String.format("%.2f", progress * 100) );
                     bw.newLine();
                     bw.flush();
                     Thread.sleep(1000);
