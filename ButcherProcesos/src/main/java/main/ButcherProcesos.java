@@ -56,7 +56,6 @@ public class ButcherProcesos {
             });
             show.start();
             launchJobFCFS(jm, ready.get(0));
-
         } else {
 
             RR RR = new RR(jm, 20);
@@ -65,7 +64,7 @@ public class ButcherProcesos {
                 Thread t = new Thread(() -> launchJobRR(jm, j));
                 t.start();
             }
-           
+
         }
 
     }
@@ -169,7 +168,8 @@ public class ButcherProcesos {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split("progress: ");
-                double progress = Double.parseDouble(parts[1]);
+                String SProgress=parts[1].replace("," , ".");
+                double progress = Double.parseDouble(SProgress);
                 j.setProgress(progress);
             }
             int exitCode = p.waitFor();
@@ -202,7 +202,7 @@ public class ButcherProcesos {
     }
 
     public static void print(JobManager jm, String algorithm) {
-
+        System.out.print("\033[H\033[2J");
         System.out.flush();
         System.out.println("----------------------------------------------");
         System.out.println("--BATCHER MONITOR · Política: " + algorithm + " --");
@@ -233,7 +233,7 @@ public class ButcherProcesos {
         System.out.println("RUNNING: " + jm.getRUNNING().size());
         System.out.println("ID|PID|PRIO|CORES|MEM|PROGRESO|ESTADO");
         for (Job j : jm.getRUNNING()) {
-            System.out.println(j.getId() + "|" + j.getPid() + "|" + j.getPriority() + "|" + j.getCpu() + "|" + j.getMemory() + "MB" + "|" + String.format("%.2f", j.getProgress() * 100) + "|" + j.getState());
+            System.out.println(j.getId() + "|" + j.getPid() + "|" + j.getPriority() + "|" + j.getCpu() + "|" + j.getMemory() + "MB" + "|" +String.valueOf(j.getProgress()) + "|" + j.getState());
         }
 
     }
